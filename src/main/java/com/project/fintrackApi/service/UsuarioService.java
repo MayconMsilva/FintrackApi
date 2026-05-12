@@ -6,15 +6,37 @@ import com.project.fintrackApi.dto.UsuarioRequestDTO;
 import com.project.fintrackApi.dto.UsuarioResponseDTO;
 import com.project.fintrackApi.exception.ResourceNotFoundException;
 import com.project.fintrackApi.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioService {
 
 
-    private UsuarioRepository usuarioRepository;
+    private final   UsuarioRepository usuarioRepository;
 
-    public Usuario cadastrar (UsuarioRequestDTO dto){
+
+
+
+    private UsuarioResponseDTO toResponseDTO(Usuario usuario){
+        return UsuarioResponseDTO.builder()
+                .id(usuario.getId())
+                .nome(usuario.getNome())
+                .email(usuario.getEmail())
+                .dataCriacao(usuario.getDataCriacao())
+                .build();
+    }
+
+
+
+
+    @Transactional
+    public UsuarioResponseDTO cadastrar (UsuarioRequestDTO dto){
+
         if(usuarioRepository.existsByEmail(dto.getEmail()))
             throw new ResourceNotFoundException("Email Já Cadastrado");
 
@@ -25,11 +47,25 @@ public class UsuarioService {
                 .senha(dto.getSenha())
                 .build();
 
-        return usuarioRepository.save(usuario);
+        Usuario salvo =usuarioRepository.save(usuario);
+
+        return toResponseDTO(salvo);
     }
 
-    public Usuario buscarPorId(Long id){
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário Não Encontrado" + id));
+
+
+    public UsuarioResponseDTO buscarPorId(Long id){
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário Não Encontrado"));
+
+        return toResponseDTO(usuario);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioResponseDTO> listarTodos(){
+        return usuarioRepository.findAll()
+                .stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 }
