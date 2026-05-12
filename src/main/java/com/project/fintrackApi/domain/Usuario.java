@@ -33,6 +33,9 @@ public class Usuario {
 
     private LocalDateTime dataCriacao;
 
+    @Column(nullable = false)
+    private Boolean ativo;
+
 
     @PrePersist
     private void prePersist() {
