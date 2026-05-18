@@ -34,7 +34,8 @@ public class Usuario {
     private LocalDateTime dataCriacao;
 
     @Column(nullable = false)
-    private Boolean ativo;
+    @Builder.Default
+    private Boolean ativo = true;
 
 
     @PrePersist

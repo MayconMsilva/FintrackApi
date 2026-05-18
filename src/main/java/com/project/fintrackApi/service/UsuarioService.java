@@ -7,6 +7,7 @@ import com.project.fintrackApi.dto.UsuarioResponseDTO;
 import com.project.fintrackApi.exception.ResourceNotFoundException;
 import com.project.fintrackApi.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ public class UsuarioService {
 
 
     private final   UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
 
@@ -44,7 +46,7 @@ public class UsuarioService {
         Usuario usuario = Usuario.builder()
                 .nome(dto.getNome())
                 .email(dto.getEmail())
-                .senha(dto.getSenha())
+                .senha(passwordEncoder.encode(dto.getSenha()))
                 .build();
 
         Usuario salvo =usuarioRepository.save(usuario);

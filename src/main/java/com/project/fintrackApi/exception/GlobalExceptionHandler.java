@@ -85,6 +85,9 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request) {
 
+
+        ex.printStackTrace();
+
         return ErroResponseDTO.builder()
                 .status(500)
                 .erro("Erro interno")
