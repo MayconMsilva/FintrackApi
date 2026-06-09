@@ -78,6 +78,21 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    @ExceptionHandler(SaldoInsuficienteException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ErroResponseDTO handleSaldoInsuficiente(
+            SaldoInsuficienteException ex,
+            HttpServletRequest request) {
+
+        return ErroResponseDTO.builder()
+                .status(422)
+                .erro("Saldo Insuficiente")
+                .mensagem(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
     // 500 — erro inesperado — sempre tenha esse handler
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

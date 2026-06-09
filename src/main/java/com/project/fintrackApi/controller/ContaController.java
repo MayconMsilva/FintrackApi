@@ -51,7 +51,7 @@ public class ContaController {
         return ResponseEntity.ok(contaService.buscarPorId(id, userDetails.getUsername()));
     }
 
-
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id, @AuthenticationPrincipal
                                         UserDetails userDetails){
         contaService.deletar(id, userDetails.getUsername());
