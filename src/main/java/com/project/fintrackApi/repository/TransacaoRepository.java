@@ -3,7 +3,9 @@ package com.project.fintrackApi.repository;
 import com.project.fintrackApi.domain.Transacao;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
@@ -13,4 +15,12 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
     // Todas as transações do usuário em todas as contas
     List<Transacao> findByContaUsuarioEmailOrderByDataTransacaoDesc(String email);
+
+    Optional<Transacao> findByIdAndConta_Usuario_Email(Long id, String email);
+
+    List<Transacao> findByContaIdAndDataTransacaoBetween(
+            Long contaId,
+            LocalDateTime inicio,
+            LocalDateTime fim
+    );
 }

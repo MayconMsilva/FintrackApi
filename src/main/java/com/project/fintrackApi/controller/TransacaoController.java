@@ -67,6 +67,7 @@ public class TransacaoController {
     }
 
 
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelar(
             @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails){
 

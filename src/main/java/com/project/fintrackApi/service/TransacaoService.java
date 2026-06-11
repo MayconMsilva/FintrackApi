@@ -4,6 +4,7 @@ package com.project.fintrackApi.service;
 import com.project.fintrackApi.domain.Conta;
 import com.project.fintrackApi.domain.Transacao;
 import com.project.fintrackApi.domain.enums.TipoTransacao;
+import com.project.fintrackApi.dto.ResumoFinanceiroDTO;
 import com.project.fintrackApi.dto.TransacaoRequestDTO;
 import com.project.fintrackApi.dto.TransacaoResponseDTO;
 import com.project.fintrackApi.exception.ResourceNotFoundException;
@@ -16,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.security.sasl.SaslException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -156,6 +160,46 @@ public class TransacaoService {
     }
 
     @Transactional(readOnly = true)
+    public ResumoFinanceiroDTO resumoPorConta(Long contaId, String emailUsuario,
+                                              LocalDate dataInicio, LocalDate dataFim){
+
+        // Valida que a conta pertence ao usuário
+        contaRepository.findByIdAndUsuarioEmail(contaId, emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Conta Não Encontrada"));
+
+
+        // Converte LocalDate para LocalDateTime
+        // dataInicio -> começo do dia 00:00:00
+        // dataFim -> final do dia 23:59:59
+        LocalDateTime inicio = dataInicio.atStartOfDay();
+        LocalDateTime fim = dataFim.atTime(23, 59, 59);
+
+
+        List<Transacao> transacaos = transacaoRepository
+                .findByContaIdAndDataTransacaoBetween(contaId, inicio, fim);
+
+        // Soma todas as Receitas do Período
+        BigDecimal totalReceitas = transacaos.stream()
+                .filter(t -> t.getTipoTransacao() == TipoTransacao.RECEITA)
+                .map(Transacao::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Soma todas as Despesas do Período
+        BigDecimal totalDespesas = transacaos.stream()
+                .filter(t -> t.getTipoTransacao() == TipoTransacao.DESPESA)
+                .map(Transacao::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+
+        return ResumoFinanceiroDTO.builder()
+                .totalReceitas(totalReceitas)
+                .totalDespesas(totalDespesas)
+                .saldoPeriodo(totalReceitas.subtract(totalDespesas))
+                .quantidadeTransacoes((long) transacaos.size())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public List<TransacaoResponseDTO> listarPorConta(Long contaId, String emailUsuario){
 
 
@@ -193,10 +237,6 @@ public class TransacaoService {
             case RECEITA -> conta.setSaldo(conta.getSaldo().subtract(transacao.getValor()));
             case DESPESA -> conta.setSaldo(conta.getSaldo().add(transacao.getValor()));
         }
-
-
-
-
 
         contaRepository.save(conta);
 
