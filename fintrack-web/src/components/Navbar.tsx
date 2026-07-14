@@ -24,6 +24,9 @@ export default function Navbar() {
         <button onClick={() => navigate('/transacoes')} style={styles.link}>
           Transações
         </button>
+        <button onClick={() => navigate('/relatorio')} style={styles.link}>
+            Relatório
+         </button>
       </div>
 
       <div style={styles.user}>
