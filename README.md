@@ -1,65 +1,67 @@
-# 💸 FinTrack API
+# 💸 FinTrack — Sistema de Gestão Financeira Pessoal
 
-> API REST para gestão financeira pessoal — controle de contas, receitas, despesas e transferências com segurança e arquitetura profissional.
+> Aplicação fullstack para controle de finanças pessoais — gerenciamento de contas, receitas, despesas, transferências e relatórios financeiros.
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square&logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.3-green?style=flat-square&logo=springboot)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue?style=flat-square&logo=postgresql)
+![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
 ![JWT](https://img.shields.io/badge/JWT-Auth-black?style=flat-square&logo=jsonwebtokens)
-![Flyway](https://img.shields.io/badge/Flyway-Migrations-red?style=flat-square)
-![JUnit](https://img.shields.io/badge/JUnit_5-Testes-brightgreen?style=flat-square)
 
 ---
 
 ## 📋 Sobre o Projeto
 
-O **FinTrack API** é um sistema backend completo de gestão financeira pessoal desenvolvido com Java e Spring Boot. O projeto foi construído seguindo boas práticas de mercado — arquitetura em camadas, segurança com JWT, validações, tratamento global de erros, migrations versionadas e testes automatizados.
+O **FinTrack** é um sistema fullstack de gestão financeira pessoal desenvolvido com **Java + Spring Boot** no backend e **React + TypeScript** no frontend. O projeto foi construído seguindo boas práticas de mercado — arquitetura em camadas, autenticação stateless com JWT, validações, tratamento global de erros, migrations versionadas com Flyway e testes automatizados.
 
-### Funcionalidades
+---
 
-- ✅ Cadastro e autenticação de usuários com JWT
+## 🖥️ Funcionalidades
+
+- ✅ Cadastro e login de usuários com JWT
+- ✅ Dashboard com saldo total de todas as contas
 - ✅ Gerenciamento de contas bancárias (Corrente, Poupança, Investimento)
-- ✅ Registro de receitas e despesas com atualização automática de saldo
-- ✅ Transferências entre contas com lançamento duplo
-- ✅ Cancelamento de transações com reversão de saldo
+- ✅ Registro de receitas, despesas e transferências
+- ✅ Cancelamento de transações com reversão automática de saldo
 - ✅ Relatório financeiro por período
 - ✅ Isolamento total de dados por usuário autenticado
-- ✅ Categorias do sistema para classificação de transações
 
 ---
 
 ## 🏗️ Arquitetura
 
 ```
-src/main/java/com/project/fintrackApi/
+fintrack/
+├── fintrack-api/          # Backend — Java + Spring Boot
+│   └── src/main/java/
+│       ├── controller/    # Endpoints REST
+│       ├── service/       # Regras de negócio
+│       ├── repository/    # Acesso ao banco
+│       ├── domain/        # Entidades e enums
+│       ├── dto/           # Request e Response DTOs
+│       ├── config/        # Security, CORS, Flyway
+│       └── exception/     # Tratamento global de erros
 │
-├── controller/         # Endpoints REST — recebe e responde requisições HTTP
-├── service/            # Regras de negócio
-├── repository/         # Acesso ao banco de dados via JPA
-├── domain/             # Entidades e enums
-│   └── enums/
-├── dto/
-│   ├── request/        # Dados que entram na API
-│   └── response/       # Dados que saem da API
-├── config/
-│   └── security/       # Spring Security + JWT Filter
-└── exception/          # Tratamento global de erros
+└── fintrack-web/          # Frontend — React + TypeScript
+    └── src/
+        ├── pages/         # Login, Cadastro, Dashboard, Contas, Transações, Relatório
+        ├── components/    # Navbar, PrivateRoute
+        ├── services/      # authService, contaService, transacaoService
+        └── context/       # AuthContext
 ```
 
 ---
 
 ## 🔒 Segurança
 
-A autenticação é **stateless** via JWT. Cada requisição protegida deve conter o token no header:
-
-```
-Authorization: Bearer {token}
-```
-
-- Senhas armazenadas com hash **BCrypt**
+- Autenticação **stateless** via **JWT**
+- Senhas com hash **BCrypt**
 - Token com expiração de **24 horas**
 - Cada usuário acessa **somente seus próprios dados**
 - Proteção contra **IDOR** — recursos de outros usuários retornam 404
+- Interceptors no Axios — token automático em toda requisição
+- Redirecionamento automático para login quando token expira
 
 ---
 
@@ -71,112 +73,45 @@ Usuario (1) ──── (N) Conta (1) ──── (N) Transacao
                                     Categoria (N:1)
 ```
 
-### Tipos de Transação
-
 | Tipo | Comportamento |
 |------|--------------|
 | `RECEITA` | Aumenta o saldo da conta |
-| `DESPESA` | Diminui o saldo — rejeita se saldo insuficiente |
+| `DESPESA` | Diminui o saldo — rejeita se insuficiente |
 | `TRANSFERENCIA` | Débito na origem e crédito no destino — atomicamente |
 
 ---
 
-## 🚀 Endpoints
+## 🚀 Endpoints da API
 
-### 🔓 Públicos
+### Públicos
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | `POST` | `/api/usuarios` | Cadastrar usuário |
-| `POST` | `/api/auth/login` | Login — retorna token JWT |
+| `POST` | `/api/auth/login` | Login |
 
-### 🔐 Autenticados
+### Autenticados — Contas
 
-#### Contas
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | `POST` | `/api/contas` | Criar conta |
-| `GET` | `/api/contas` | Listar contas do usuário |
-| `GET` | `/api/contas/{id}` | Buscar conta por ID |
+| `GET` | `/api/contas` | Listar contas |
+| `GET` | `/api/contas/{id}` | Buscar por ID |
 | `DELETE` | `/api/contas/{id}` | Deletar conta |
 
-#### Transações
+### Autenticados — Transações
+
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | `POST` | `/api/transacoes` | Criar transação |
-| `GET` | `/api/transacoes` | Listar todas as transações |
+| `GET` | `/api/transacoes` | Listar todas |
 | `GET` | `/api/transacoes/conta/{id}` | Listar por conta |
-| `GET` | `/api/transacoes/resumo/{id}?dataInicio=&dataFim=` | Relatório por período |
-| `DELETE` | `/api/transacoes/{id}` | Cancelar transação |
+| `GET` | `/api/transacoes/resumo/{id}?dataInicio=&dataFim=` | Relatório |
+| `DELETE` | `/api/transacoes/{id}` | Cancelar |
 
 ---
 
-## 📦 Exemplos de Uso
-
-### Cadastro de Usuário
-```http
-POST /api/usuarios
-Content-Type: application/json
-
-{
-    "nome": "João Silva",
-    "email": "joao@email.com",
-    "senha": "123456"
-}
-```
-
-### Login
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-    "email": "joao@email.com",
-    "senha": "123456"
-}
-```
-```json
-{
-    "token": "eyJhbGciOiJIUzI1NiJ9...",
-    "tipo": "Bearer",
-    "nome": "João Silva",
-    "email": "joao@email.com"
-}
-```
-
-### Criar Transação
-```http
-POST /api/transacoes
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "valor": 1500.00,
-    "tipoTransacao": "RECEITA",
-    "descricao": "Salário",
-    "contaOrigemId": 1
-}
-```
-
-### Relatório por Período
-```http
-GET /api/transacoes/resumo/1?dataInicio=2024-01-01&dataFim=2024-01-31
-Authorization: Bearer {token}
-```
-```json
-{
-    "totalReceitas": 5000.00,
-    "totalDespesas": 1500.00,
-    "saldoPeriodo": 3500.00,
-    "quantidadeTransacoes": 8
-}
-```
-
----
-
-## ⚠️ Tratamento de Erros
-
-Todas as respostas de erro seguem o padrão:
+## ⚠️ Padrão de Erros
 
 ```json
 {
@@ -190,111 +125,122 @@ Todas as respostas de erro seguem o padrão:
 
 | Status | Situação |
 |--------|----------|
-| `400` | Dados inválidos — campos obrigatórios ou formato incorreto |
-| `401` | Token ausente ou inválido |
-| `403` | Sem permissão de acesso |
-| `404` | Recurso não encontrado ou não pertence ao usuário |
-| `409` | Conflito — ex: email já cadastrado |
-| `422` | Saldo insuficiente para a operação |
-| `500` | Erro interno inesperado |
+| `400` | Dados inválidos |
+| `401` | Token inválido |
+| `403` | Sem permissão |
+| `404` | Não encontrado |
+| `409` | Conflito |
+| `422` | Saldo insuficiente |
+| `500` | Erro interno |
 
 ---
 
-## 🧪 Testes
-
-O projeto conta com testes unitários cobrindo as regras de negócio críticas:
+## 🧪 Testes Automatizados
 
 ```bash
 ./mvnw test
 ```
 
-**Cenários testados:**
-- ✅ Receita aumenta o saldo corretamente
-- ✅ Despesa diminui o saldo corretamente
-- ✅ Saldo insuficiente lança exception sem alterar dados
-- ✅ Conta não encontrada lança exception
-- ✅ Transferência movimenta dois saldos simultaneamente
-- ✅ Transferência para mesma conta é rejeitada
-- ✅ Cancelamento de despesa reverte saldo
-- ✅ Cancelamento de receita reverte saldo
+8 testes cobrindo: receita, despesa, saldo insuficiente, transferência e cancelamento.
 
 ---
 
 ## 🛠️ Tecnologias
 
-| Tecnologia | Versão | Uso |
-|------------|--------|-----|
-| Java | 17 | Linguagem principal |
-| Spring Boot | 3.2.3 | Framework base |
-| Spring Security | 6 | Autenticação e autorização |
-| Spring Data JPA | 3.2.3 | Persistência de dados |
-| Hibernate | 6.4 | ORM |
-| PostgreSQL | 17 | Banco de dados |
-| Flyway | 9.22 | Versionamento do banco |
-| JWT (Auth0) | 4.4 | Geração e validação de tokens |
-| BCrypt | - | Hash de senhas |
-| Lombok | - | Redução de boilerplate |
-| JUnit 5 | - | Testes unitários |
-| Mockito | - | Mock de dependências |
-| Maven | 3 | Gerenciamento de dependências |
+### Backend
+
+| Tecnologia | Uso |
+|------------|-----|
+| Java 17 | Linguagem principal |
+| Spring Boot 3.2.3 | Framework base |
+| Spring Security 6 | Autenticação |
+| Spring Data JPA | Persistência |
+| PostgreSQL 17 | Banco de dados |
+| Flyway | Migrations |
+| JWT Auth0 4.4 | Tokens |
+| BCrypt | Hash de senhas |
+| JUnit 5 + Mockito | Testes |
+| Maven | Dependências |
+
+### Frontend
+
+| Tecnologia | Uso |
+|------------|-----|
+| React 18 | Framework de UI |
+| TypeScript 5 | Tipagem |
+| Vite 5 | Build tool |
+| React Router DOM 6 | Navegação |
+| Axios | Requisições HTTP |
+| Context API | Estado global |
 
 ---
 
-## ⚙️ Como Executar Localmente
+## ⚙️ Como Executar
 
 ### Pré-requisitos
 
-- Java 17+
-- Maven 3+
-- PostgreSQL 15+
+- Java 17+, Maven 3+, PostgreSQL 15+
+- Node.js 18+, npm 9+
 
-### Passo a Passo
+### Backend
 
-**1. Clone o repositório**
 ```bash
 git clone https://github.com/MayconMsilva/fintrack-api.git
 cd fintrack-api
 ```
 
-**2. Crie o banco de dados**
 ```sql
 CREATE DATABASE fintrack;
 ```
 
-**3. Configure as variáveis de ambiente**
-```bash
-DATABASE_URL=jdbc:postgresql://localhost:5432/fintrack
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=sua_senha
-JWT_SECRET=fintrack-secret-key-dev
+```properties
+spring.datasource.url=${DATABASE_URL:jdbc:postgresql://localhost:5432/fintrack}
+spring.datasource.username=${DATABASE_USERNAME:postgres}
+spring.datasource.password=${DATABASE_PASSWORD:sua_senha}
+api.security.token.secret=${JWT_SECRET:fintrack-secret-key-dev}
 ```
 
-Ou edite diretamente o `application.properties`.
-
-**4. Execute a aplicação**
 ```bash
 ./mvnw spring-boot:run
 ```
 
-O Flyway criará as tabelas automaticamente na primeira execução.
+API disponível em `http://localhost:8080`
 
-**5. Acesse a API**
+### Frontend
+
+```bash
+cd fintrack-web
+npm install
+npm run dev
 ```
-http://localhost:8080
-```
+
+Frontend disponível em `http://localhost:5173`
+
+> ⚠️ Certifique-se de que a API está rodando antes de acessar o frontend.
 
 ---
 
 ## 📁 Migrations
 
-O banco é versionado com Flyway:
+```
+V1 — Usuários
+V2 — Categorias
+V3 — Contas
+V4 — Transações
+V5 — Seed categorias do sistema
+```
+
+---
+
+## 📁 Páginas do Frontend
 
 ```
-V1 — Tabela de usuários
-V2 — Tabela de categorias
-V3 — Tabela de contas
-V4 — Tabela de transações
-V5 — Seed de categorias do sistema
+/login        → Login
+/cadastro     → Cadastro
+/dashboard    → Saldo total e contas
+/contas       → Gerenciamento de contas
+/transacoes   → Histórico e registro
+/relatorio    → Relatório por período
 ```
 
 ---
@@ -308,6 +254,3 @@ V5 — Seed de categorias do sistema
 
 ---
 
-## 📄 Licença
-
-Este projeto está sob a licença MIT.
